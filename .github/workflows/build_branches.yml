@@ -33,6 +33,9 @@ jobs:
           8.0.x
         source-url: ${{env.fugro_source_url}}
 
+    - name: Bootstrap tooling
+      run: dotnet tool restore
+
     - name: Restore (nuget packages)
       run: dotnet restore
 
