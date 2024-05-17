@@ -1,0 +1,26 @@
+# Please see the documentation for all configuration options:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+registries:
+  nuget:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+  fugro-nuget:
+    type: nuget-feed
+    url: https://nuget.pkg.github.com/fugro/index.json
+    token: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    registries:
+    - nuget
+    - fugro-nuget
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every weekday
+      interval: "daily"
+

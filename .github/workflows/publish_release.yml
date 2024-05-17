@@ -1,0 +1,59 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./Source
+
+jobs:
+  publish:
+    name: Pack & Publish
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET Core 3.1.X
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 3.1.x
+        source-url: https://nuget.pkg.github.com/fugro/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}     
+    - name: Setup .NET 5.0.X
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 5.0.x
+        source-url: https://nuget.pkg.github.com/fugro/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
+    - name: Setup .NET 6.0.X
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+        source-url: https://nuget.pkg.github.com/fugro/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
+
+    - name: Restore (nuget packages)
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore -p:Version=${GITHUB_REF#*v}
+
+    - name: Unit Test
+      run: dotnet test --configuration Release --no-build --no-restore
+
+    - name: Pack (nuget packages)
+      run: dotnet pack --configuration Release --no-build --no-restore -p:Version=${GITHUB_REF#*v}
+
+    - name: Push (nuget packages)
+      run: dotnet nuget push --skip-duplicate --source https://nuget.pkg.github.com/fugro/index.json --api-key "${{secrets.GITHUB_TOKEN}}" './../Artifacts/*.nupkg'
+

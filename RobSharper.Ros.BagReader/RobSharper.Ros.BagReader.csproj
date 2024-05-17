@@ -6,11 +6,14 @@
         <Copyright>JOANNEUM RESEARCH Forschungsgesellschaft mbH</Copyright>
         <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
         <Description>
-            RobSharper.Ros.BagReader can process ROSBAG files.
+            Fugro fork of RobSharper.Ros.BagReader can process ROSBAG files.
         </Description>
         <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>https://github.com/jr-robotics/RobSharper.Ros.BagReader.git</RepositoryUrl>
+        <RepositoryUrl>https://github.com/fugro/public.forks.RobSharper.Ros.BagReader.git</RepositoryUrl>
         <PackageTags>ROS;RobSharper;RobSharper.Ros;ROSBAG;</PackageTags>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <PackageOutputPath>$(MSBuildThisFileDirectory)/../Artifacts</PackageOutputPath>
     </PropertyGroup>
 
     <ItemGroup>
