@@ -1,0 +1,58 @@
+name: Publish main release package
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build_test_publish:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
+      fugro_source_url: https://nuget.pkg.github.com/fugro/index.json
+    steps:
+    - name: Checkout repository and initialize for LFS
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.0.x
+          7.0.x
+          8.0.x
+        source-url: ${{env.fugro_source_url}}
+
+    - name: Restore (nuget packages)
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore -p:Version=${GITHUB_REF#*v}
+
+    - name: Unit Test
+      run: dotnet test --configuration Release --no-build --logger="trx;logfilename=TestResults.trx"
+
+    - name: Pack
+      run: dotnet pack --configuration Release --no-build -p:Version=${GITHUB_REF#*v}
+
+    - name: Publish
+      run: dotnet nuget push --skip-duplicate --source ${{env.fugro_source_url}} --api-key "${{secrets.GITHUB_TOKEN}}" './../Artifacts/*.nupkg'
+
+    - name: Reporting
+      uses: dorny/test-reporter@v1
+      with:
+        name: 'Test results report'
+        reporter: 'dotnet-trx'
+        path: '**/TestResults/TestResults.trx'
+        only-summary: 'false'
+        max-annotations: '10'
+        fail-on-error: 'true'
