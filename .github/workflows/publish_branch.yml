@@ -1,0 +1,48 @@
+name: Publish branch beta package
+
+on:
+  push:
+    tags:
+      - b[0-9]+.[0-9]+.[0-9]+*
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./Source
+
+jobs:
+  build_test_publish:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
+      fugro_source_url: https://nuget.pkg.github.com/fugro/index.json
+    steps:    
+    - name: Checkout repository
+      uses: actions/checkout@v4      
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.0.x
+          8.0.x
+        source-url: ${{env.fugro_source_url}}
+        
+    - name: Restore (nuget packages)
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore -p:Version="${GITHUB_REF#*b}-Beta-${GITHUB_RUN_NUMBER}"
+      
+    - name: Unit Test
+      run: dotnet test --configuration Release --no-build
+      
+    - name: Pack
+      run: dotnet pack --configuration Release --no-build -p:Version="${GITHUB_REF#*b}-Beta-${GITHUB_RUN_NUMBER}"
+      
+    - name: Publish
+      run: dotnet nuget push --skip-duplicate --source ${{env.fugro_source_url}} --api-key "${{secrets.GITHUB_TOKEN}}" './Artifacts/*.nupkg'
+ 
