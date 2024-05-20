@@ -20,7 +20,7 @@ jobs:
       NUGET_AUTH_TOKEN: ${{secrets.GLOBAL_READ_PACKAGES_SECRET}}
       fugro_source_url: https://nuget.pkg.github.com/fugro/index.json
     steps:    
-    - name: Checkout repository and initialize for LFS
+    - name: Checkout repository
       uses: actions/checkout@v4
       with:
         lfs: true
@@ -32,7 +32,6 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-          7.0.x
           8.0.x
         source-url: ${{env.fugro_source_url}}
 
